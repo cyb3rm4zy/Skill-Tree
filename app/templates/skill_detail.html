@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Skill - {{ skill.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white p-4">
+    <a href="/" class="text-blue-400 hover:underline">← Back</a>
+    <h1 class="text-3xl font-bold mb-6">Edit Skill: {{ skill.name }}</h1>
+
+    <form method="POST" class="bg-gray-800 p-4 rounded-xl">
+        <div class="grid gap-4">
+            <input type="text" name="name" value="{{ skill.name }}" required class="p-2 rounded bg-gray-700 text-white">
+            <input type="text" name="category" value="{{ skill.category }}" required class="p-2 rounded bg-gray-700 text-white">
+            <input type="number" name="hours" value="{{ skill.hours }}" step="0.1" class="p-2 rounded bg-gray-700 text-white">
+        </div>
+        <button type="submit" class="mt-4 bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded">Save Changes</button>
+    </form>
+</body>
+</html>

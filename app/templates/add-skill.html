@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Skill</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <script>
+        setTimeout(() => {
+            const toast = document.getElementById('toast');
+            if (toast) toast.remove();
+        }, 3000);
+    </script>
+<body class="bg-gray-900 text-white p-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div id="toast" class="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-xl z-50">
+                {% for category, message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <a href="/" class="text-blue-400 hover:underline">← Back</a>
+    <h1 class="text-3xl font-bold mb-6">Add a New Skill</h1>
+
+    <form action="/add" method="POST" class="bg-gray-800 p-4 rounded-xl w-full">
+        <div class="grid gap-4">
+            <input type="text" name="name" placeholder="Skill Name" required class="p-2 rounded bg-gray-700 text-white">
+            <input list="category-list" name="category" placeholder="Category" required class="p-2 rounded bg-gray-700 text-white">
+<datalist id="category-list">
+    {% for category in categories %}
+        <option value="{{ category }}">
+    {% endfor %}
+</datalist>
+            <input type="number" name="hours" placeholder="Initial Hours (optional)" step="0.1" class="p-2 rounded bg-gray-700 text-white">
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">Add Skill</button>
+    </form>
+
+    <div class="mt-10">
+    <h2 class="text-2xl font-semibold mb-4">Browse Skill Packs</h2>
+    <form method="POST" action="/add-skill-pack" class="grid gap-4">
+        <div class="grid md:grid-cols-3 gap-4">
+            <button type="submit" name="pack" value="Fitness Freak" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700">
+                <h3 class="text-xl font-bold">🏋️ Fitness Freak</h3>
+                <p class="text-sm text-gray-400">Skills: Weightlifting, Cardio, Yoga</p>
+            </button>
+            <button type="submit" name="pack" value="Creative Coder" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700">
+                <h3 class="text-xl font-bold">💻 Creative Coder</h3>
+                <p class="text-sm text-gray-400">Skills: Python, Web Dev, Game Dev</p>
+            </button>
+            <button type="submit" name="pack" value="Cyberpunk Toolkit" class="bg-gray-800 p-4 rounded-xl hover:bg-gray-700">
+                <h3 class="text-xl font-bold">🕶️ Cyberpunk Toolkit</h3>
+                <p class="text-sm text-gray-400">Skills: Ethical Hacking, Networking, Linux</p>
+            </button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

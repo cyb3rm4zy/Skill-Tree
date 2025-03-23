@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Skills</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        function sendCategoryOrder() {
+            const order = Array.from(document.querySelectorAll('[data-category]')).map(el => el.dataset.category);
+            fetch('/reorder-categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ order })
+            }).then(res => location.reload());
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('category-list');
+            Sortable.create(container, {
+                handle: 'h2',
+                animation: 150,
+                onEnd: () => {}
+            });
+        });
+    </script>
+<body class="bg-gray-900 text-white p-4">
+    <a href="/" class="text-blue-400 hover:underline">← Back to Dashboard</a>
+    <h1 class="text-3xl font-bold mb-6">Manage Skills</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-4 p-4 bg-green-600 rounded">
+                {% for category, message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div id="category-list" class="space-y-6">
+    {% for category in categories %}
+        <div data-category="{{ category }}">
+            <h2 class="text-xl font-semibold mt-8 mb-2 cursor-move">{{ category }}</h2>
+            <div class="grid gap-4 md:grid-cols-3">
+                {% for skill in skills if skill.category == category %}
+                <div class="bg-gray-800 p-4 rounded-xl">
+                    <h3 class="text-lg font-semibold">{{ skill.name }}</h3>
+                    <p class="text-sm text-gray-400">Hours: {{ skill.hours }}</p>
+                    <form method="POST" action="/delete-skill/{{ skill.id }}" onsubmit="return confirm('Delete {{ skill.name }}?')">
+                        <button type="submit" class="mt-2 bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+    <button onclick="sendCategoryOrder()" class="mt-6 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
+        ✅ Apply Category Order
+    </button>
+</body>
+</html>
