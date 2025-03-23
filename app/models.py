@@ -22,3 +22,11 @@ class Skill(db.Model):
             return "Expert"
         else:
             return "Master"
+
+
+class CategoryOrder(db.Model):
+    __tablename__ = 'category_order'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    position = db.Column(db.Integer, nullable=False)
