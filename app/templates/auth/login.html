@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-xl w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
+        
+        <form method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                <input type="text" id="username" name="username" required
+                       class="w-full p-2 rounded bg-gray-700 text-white"
+                       value="{{ request.form.get('username', '') }}">
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                <input type="password" id="password" name="password" required
+                       class="w-full p-2 rounded bg-gray-700 text-white">
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+                Login
+            </button>
+        </form>
+        
+        <p class="mt-4 text-center text-gray-400">
+            Don't have an account? 
+            <a href="{{ url_for('auth.register') }}" class="text-blue-400 hover:text-blue-300">Register</a>
+        </p>
+    </div>
+</div>
+{% endblock %} 

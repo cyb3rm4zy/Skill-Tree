@@ -1,22 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Skill - {{ skill.name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-900 text-white p-4">
-    <a href="/" class="text-blue-400 hover:underline">← Back</a>
-    <h1 class="text-3xl font-bold mb-6">Edit Skill: {{ skill.name }}</h1>
+{% extends "base.html" %}
 
-    <form method="POST" class="bg-gray-800 p-4 rounded-xl">
-        <div class="grid gap-4">
-            <input type="text" name="name" value="{{ skill.name }}" required class="p-2 rounded bg-gray-700 text-white">
-            <input type="text" name="category" value="{{ skill.category }}" required class="p-2 rounded bg-gray-700 text-white">
-            <input type="number" name="hours" value="{{ skill.hours }}" step="0.1" class="p-2 rounded bg-gray-700 text-white">
+{% block content %}
+<div class="space-y-8">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold">{{ skill.name }}</h1>
+        <a href="{{ url_for('main.index') }}" class="text-blue-400 hover:text-blue-300">← Back to Dashboard</a>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 p-6 rounded-xl">
+            <h2 class="text-xl font-bold mb-4">Progress</h2>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-gray-400">Total Hours</p>
+                    <p class="text-2xl font-bold">{{ skill.total_hours }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Mastery Level</p>
+                    <p class="text-2xl font-bold">{{ skill.get_level_name() }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Progress</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ skill.mastery_percentage }}%"></div>
+                    </div>
+                    <p class="text-sm text-gray-400 mt-1">{{ "%.1f"|format(skill.mastery_percentage) }}%</p>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="mt-4 bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded">Save Changes</button>
-    </form>
-</body>
-</html>
+
+        <div class="bg-gray-800 p-6 rounded-xl">
+            <h2 class="text-xl font-bold mb-4">Add Hours</h2>
+            <form id="add-hours-form" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="number" name="hours" placeholder="Hours spent" step="0.1" min="0" required
+                       class="w-full p-2 rounded bg-gray-700 text-white">
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
+                    Add Hours
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 p-6 rounded-xl">
+            <h2 class="text-xl font-bold mb-4">Journal Entries</h2>
+            <form id="journal-form" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <textarea name="content" placeholder="Write about your progress..." required
+                          class="w-full p-2 rounded bg-gray-700 text-white h-32"></textarea>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+                    Add Entry
+                </button>
+            </form>
+            
+            <div class="mt-6 space-y-4">
+                {% for entry in skill.journal_entries|sort(attribute='created_at', reverse=true) %}
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <p class="text-gray-300">{{ entry.content }}</p>
+                    <p class="text-sm text-gray-400 mt-2">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('add-hours-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hours = e.target.hours.value;
+    
+    try {
+        const response = await fetch(`/skill/{{ skill.id }}/add-hours`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: `hours=${hours}&csrf_token=${document.querySelector('meta[name="csrf-token"]').content}`
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while adding hours');
+    }
+});
+
+document.getElementById('journal-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const content = e.target.content.value;
+    
+    try {
+        const response = await fetch(`/skill/{{ skill.id }}/journal`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: `content=${encodeURIComponent(content)}&csrf_token=${document.querySelector('meta[name="csrf-token"]').content}`
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while adding the journal entry');
+    }
+});
+</script>
+{% endblock %}
