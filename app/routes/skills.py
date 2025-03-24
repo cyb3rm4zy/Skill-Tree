@@ -31,8 +31,8 @@ def add_skill():
             skill = Skill(name=name, category_id=category.id)
             if hours > 0:
                 skill.add_hours(hours)
-                # Update user XP (1 XP per hour)
-                current_user.add_xp(hours)
+                # Update user's total hours
+                current_user.total_hours += hours
             db.session.add(skill)
             db.session.commit()
             
@@ -111,8 +111,8 @@ def add_hours(skill_id):
         
         if hours > 0:
             skill.add_hours(hours)
-            # Update user XP (1 XP per hour)
-            current_user.add_xp(hours)
+            # Update user's total hours directly
+            current_user.total_hours += hours
             db.session.commit()
             return jsonify({
                 'success': True,
@@ -126,6 +126,48 @@ def add_hours(skill_id):
         
     except ValueError:
         return jsonify({'success': False, 'error': 'Invalid hours value'})
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Database error: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database error'})
+
+@bp.route('/skill/<int:skill_id>/change-category', methods=['POST'])
+@login_required
+def change_category(skill_id):
+    try:
+        skill = Skill.query.get_or_404(skill_id)
+        if skill.category.user_id != current_user.id:
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+            
+        category_name = request.form.get('category', '').strip()
+        
+        if not category_name:
+            return jsonify({'success': False, 'error': 'Category name is required'})
+        
+        # Handle case where category doesn't change
+        if category_name == skill.category.name:
+            return jsonify({'success': True})
+            
+        # Get or create category
+        category = Category.query.filter_by(name=category_name, user_id=current_user.id).first()
+        if not category:
+            category = Category(name=category_name, user_id=current_user.id)
+            db.session.add(category)
+            
+        # Update old category stats
+        old_category = skill.category
+        
+        # Change skill category
+        skill.category_id = category.id
+        db.session.commit()
+        
+        # Update stats for both categories
+        old_category.update_stats()
+        category.update_stats()
+        db.session.commit()
+        
+        return jsonify({'success': True})
+        
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Database error: {str(e)}")

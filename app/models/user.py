@@ -32,4 +32,11 @@ class User(UserMixin, db.Model):
             
     def level_up(self):
         self.level += 1
-        self.xp -= (self.level - 1) * 100 
+        self.xp -= (self.level - 1) * 100
+        
+    def get_total_skills(self):
+        """Calculate the total number of skills across all categories"""
+        total = 0
+        for category in self.categories:
+            total += len(category.skills)
+        return total 

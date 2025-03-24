@@ -5,41 +5,99 @@
     <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold">Your Skill Tree</h1>
         <div class="text-right">
-            <p class="text-gray-400">Level {{ current_user.level }}</p>
-            <div class="w-32 bg-gray-700 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (current_user.xp / (current_user.level * 100)) * 100 }}%"></div>
-            </div>
-            <p class="text-sm text-gray-400">{{ current_user.xp }}/{{ current_user.level * 100 }} XP</p>
+            <p class="text-gray-400">{{ current_user.total_hours }} Total Hours</p>
         </div>
     </div>
 
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="space-y-6">
         {% for category in categories %}
-        <div class="bg-gray-800 p-6 rounded-xl">
-            <h2 class="text-xl font-bold mb-4">{{ category.name }}</h2>
-            <div class="space-y-4">
-                {% for skill in category.skills %}
-                <div class="bg-gray-700 p-4 rounded-lg">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-semibold">{{ skill.name }}</h3>
-                            <p class="text-sm text-gray-400">{{ skill.get_level_name() }} (Level {{ skill.level }})</p>
-                        </div>
-                        <a href="{{ url_for('main.skill_detail', skill_id=skill.id) }}" class="text-blue-400 hover:text-blue-300">
-                            Details
-                        </a>
-                    </div>
-                    <div class="mt-2">
-                        <div class="w-full bg-gray-600 rounded-full h-2">
-                            <div class="bg-green-600 h-2 rounded-full" style="width: {{ skill.mastery_percentage }}%"></div>
-                        </div>
-                        <p class="text-sm text-gray-400 mt-1">{{ skill.total_hours }}/{{ skill.target_hours }} hours</p>
-                    </div>
+        <div class="category-container">
+            <div class="bg-gray-800 p-4 rounded-t-xl flex items-center justify-between cursor-pointer category-header" data-category-id="{{ category.id }}">
+                <div class="flex items-center">
+                    <svg class="category-icon w-6 h-6 mr-2 transition-transform transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <h2 class="text-xl font-bold">{{ category.name }}</h2>
                 </div>
-                {% endfor %}
+                <span class="text-sm text-gray-400">{{ category.skills|length }} skills</span>
+            </div>
+            <div class="category-content bg-gray-800 rounded-b-xl">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                    {% for skill in category.skills %}
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold">{{ skill.name }}</h3>
+                                <p class="text-sm text-gray-400">{{ skill.get_level_name() }} (Level {{ skill.level }})</p>
+                            </div>
+                            <a href="{{ url_for('main.skill_detail', skill_id=skill.id) }}" class="text-blue-400 hover:text-blue-300">
+                                Details
+                            </a>
+                        </div>
+                        <div class="mt-2">
+                            <div class="w-full bg-gray-600 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ skill.mastery_percentage }}%"></div>
+                            </div>
+                            <p class="text-sm text-gray-400 mt-1">{{ skill.total_hours }}/{{ skill.target_hours }} hours</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up event listeners for category headers
+        const categoryHeaders = document.querySelectorAll('.category-header');
+        
+        categoryHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const categoryId = this.dataset.categoryId;
+                const container = this.closest('.category-container');
+                const content = container.querySelector('.category-content');
+                const icon = container.querySelector('.category-icon');
+                
+                // Toggle the content visibility
+                content.classList.toggle('hidden');
+                
+                // Rotate the arrow icon
+                if (content.classList.contains('hidden')) {
+                    icon.classList.add('rotate-[-90deg]');
+                    // Change header from rounded-top to fully rounded when content is hidden
+                    this.classList.remove('rounded-t-xl');
+                    this.classList.add('rounded-xl');
+                } else {
+                    icon.classList.remove('rotate-[-90deg]');
+                    // Change header back to rounded-top when content is visible
+                    this.classList.remove('rounded-xl');
+                    this.classList.add('rounded-t-xl');
+                }
+                
+                // Store the state in localStorage
+                localStorage.setItem(`category_${categoryId}_collapsed`, content.classList.contains('hidden'));
+            });
+            
+            // Check if there's a saved state in localStorage
+            const categoryId = header.dataset.categoryId;
+            const isCollapsed = localStorage.getItem(`category_${categoryId}_collapsed`) === 'true';
+            if (isCollapsed) {
+                const container = header.closest('.category-container');
+                const content = container.querySelector('.category-content');
+                const icon = container.querySelector('.category-icon');
+                
+                content.classList.add('hidden');
+                icon.classList.add('rotate-[-90deg]');
+                // Also update the header border radius for the initial state
+                header.classList.remove('rounded-t-xl');
+                header.classList.add('rounded-xl');
+            }
+        });
+    });
+</script>
 {% endblock %}

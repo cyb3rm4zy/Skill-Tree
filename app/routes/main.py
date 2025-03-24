@@ -24,4 +24,5 @@ def skill_detail(skill_id):
     skill = Skill.query.get_or_404(skill_id)
     if skill.category.user_id != current_user.id:
         return redirect(url_for('main.index'))
-    return render_template('skill_detail.html', skill=skill) 
+    categories = Category.query.filter_by(user_id=current_user.id).all()
+    return render_template('skill_detail.html', skill=skill, categories=categories) 

@@ -20,6 +20,15 @@
                     <p class="text-2xl font-bold">{{ skill.get_level_name() }}</p>
                 </div>
                 <div>
+                    <p class="text-gray-400">Category</p>
+                    <div class="flex items-center">
+                        <p class="text-2xl font-bold">{{ skill.category.name }}</p>
+                        <button id="change-category-btn" class="ml-2 text-sm text-blue-400 hover:text-blue-300">
+                            Change
+                        </button>
+                    </div>
+                </div>
+                <div>
                     <p class="text-gray-400">Progress</p>
                     <div class="w-full bg-gray-700 rounded-full h-2">
                         <div class="bg-blue-600 h-2 rounded-full" style="width: {{ skill.mastery_percentage }}%"></div>
@@ -35,8 +44,40 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="number" name="hours" placeholder="Hours spent" step="0.1" min="0" required
                        class="w-full p-2 rounded bg-gray-700 text-white">
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
                     Add Hours
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Category Modal -->
+    <div id="category-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="fixed inset-0 bg-black opacity-75" id="modal-backdrop"></div>
+        <div class="bg-gray-800 p-6 rounded-xl z-10 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Change Category</h2>
+                <button id="close-modal" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="change-category-form" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-400 mb-1">Category</label>
+                    <input list="category-list" id="category" name="category" required
+                           class="w-full p-2 rounded bg-gray-700 text-white"
+                           value="{{ skill.category.name }}">
+                    <datalist id="category-list">
+                        {% for category in categories %}
+                            <option value="{{ category.name }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">
+                    Save Changes
                 </button>
             </form>
         </div>
@@ -118,6 +159,49 @@ document.getElementById('journal-form').addEventListener('submit', async (e) => 
     } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while adding the journal entry');
+    }
+});
+
+// Modal functionality
+const categoryModal = document.getElementById('category-modal');
+const modalBackdrop = document.getElementById('modal-backdrop');
+const changeCategoryBtn = document.getElementById('change-category-btn');
+const closeModalBtn = document.getElementById('close-modal');
+
+changeCategoryBtn.addEventListener('click', () => {
+    categoryModal.classList.remove('hidden');
+});
+
+function closeModal() {
+    categoryModal.classList.add('hidden');
+}
+
+closeModalBtn.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', closeModal);
+
+document.getElementById('change-category-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const category = e.target.category.value;
+    
+    try {
+        const response = await fetch(`/skill/{{ skill.id }}/change-category`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: `category=${encodeURIComponent(category)}&csrf_token=${document.querySelector('meta[name="csrf-token"]').content}`
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while changing the category');
     }
 });
 </script>
