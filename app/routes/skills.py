@@ -28,13 +28,22 @@ def add_skill():
                 db.session.commit()
             
             # Create skill
-            skill = Skill(name=name, category_id=category.id)
-            if hours > 0:
-                skill.add_hours(hours)
-                # Update user's total hours
-                current_user.total_hours += hours
+            skill = Skill(
+                name=name,
+                category_id=category.id,
+                total_hours=0.0,
+                target_hours=10000.0,
+                mastery_percentage=0.0,
+                level=1,
+                level_threshold=10.0
+            )
             db.session.add(skill)
             db.session.commit()
+            
+            if hours > 0:
+                skill.add_hours(hours)
+                current_user.total_hours += hours
+                db.session.commit()
             
             flash('Skill added successfully!', 'success')
             return redirect(url_for('main.index'))
@@ -84,7 +93,7 @@ def add_skill_pack():
                     db.session.commit()
                 
                 # Create skill
-                skill = Skill(name=skill_name, category_id=category.id)
+                skill = Skill(name=skill_name, category_id=category.id, total_hours=0.0, target_hours=10000.0)
                 db.session.add(skill)
             
             db.session.commit()
