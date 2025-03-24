@@ -10,7 +10,7 @@ def index():
     if not current_user.is_authenticated:
         return render_template('landing.html')
     
-    categories = Category.query.filter_by(user_id=current_user.id).all()
+    categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.position).all()
     return render_template('index.html', categories=categories)
 
 @bp.route('/profile')

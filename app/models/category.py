@@ -8,6 +8,7 @@ class Category(db.Model):
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    position = db.Column(db.Integer, default=0)  # For tracking category order
     
     # Foreign keys
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

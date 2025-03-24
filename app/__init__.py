@@ -38,8 +38,10 @@ def create_app(config_class=Config):
 
     # Register blueprints
     from app.routes import auth, skills, main
+    from app.routes.manage import bp as manage_bp
     app.register_blueprint(auth.bp)
     app.register_blueprint(skills.bp)
     app.register_blueprint(main.bp)
+    app.register_blueprint(manage_bp)
 
     return app
